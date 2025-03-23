@@ -1,3 +1,5 @@
+![image](https://github.com/user-attachments/assets/2e1f3e18-02bd-4c56-9252-cbbf8aea2696)
+
 # Rectron
 
 ## Описание
