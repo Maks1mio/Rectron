@@ -1,37 +1,39 @@
 # Rectron
 
-## Описание
-Rectron — это настроенный шаблон для работы с Electron и React, который упрощает создание кроссплатформенных приложений.
+[Русская документация](https://github.com/Maks1mio/Rectron/blob/main/readme.ru.md)
 
-## Установка
-1. Убедитесь, что у вас установлен [Node.js](https://nodejs.org/).
-2. Склонируйте репозиторий:
-   ```bash
-   git clone
-   ```
-3. Перейдите в папку проекта:
-   ```bash
-   cd Rectron
-   ```
-4. Установите зависимости:
-   ```bash
-   yarn install
-   ```
+## Description  
+Rectron is a customized template for working with Electron and React, designed to simplify the creation of cross-platform applications.
 
-## Запуск
-1. Для запуска проекта в режиме разработки выполните:
-   ```bash
-   yarn dev
-   ```
-2. Для сборки проекта выполните:
-   ```bash
-   yarn build
-   ```
-3. Для запуска собранного проекта выполните:
-   ```bash
-   yarn start
-   ```
+## Installation  
+1. Make sure you have [Node.js](https://nodejs.org/) installed.  
+2. Clone the repository:  
+   ```bash  
+   git clone https://github.com/Maks1mio/Rectron
+   ```  
+3. Navigate to the project folder:  
+   ```bash  
+   cd Rectron  
+   ```  
+4. Install the dependencies:  
+   ```bash  
+   yarn install  
+   ```  
 
-## Дополнительно
-- Убедитесь, что у вас настроены все переменные окружения, если это требуется.
-- Ознакомьтесь с документацией в коде для получения дополнительной информации.
+## Running  
+1. To start the project in development mode, run:  
+   ```bash  
+   yarn dev  
+   ```  
+2. To build the project, run:  
+   ```bash  
+   yarn build  
+   ```  
+3. To launch the built project, run:  
+   ```bash  
+   yarn start  
+   ```  
+
+## Additional Notes  
+- Make sure all required environment variables are configured, if necessary.  
+- Refer to the in-code documentation for more detailed information.
