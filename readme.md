@@ -1,41 +1,58 @@
-![image](https://github.com/user-attachments/assets/2e1f3e18-02bd-4c56-9252-cbbf8aea2696)
+![image](https://github.com/user-attachments/assets/54f40a5f-4f89-4b42-bfe3-bc504935fe33)
 
 # Rectron
 
 [Русская документация](https://github.com/Maks1mio/Rectron/blob/main/readme.ru.md)
 
-## Description  
-Rectron is a customized template for working with Electron and React, designed to simplify the creation of cross-platform applications.
+## Description
+Rectron is a customized Electron + React template focused on type safety, clean preload APIs, and fast development workflow.
 
-## Installation  
-1. Make sure you have [Node.js](https://nodejs.org/) installed.  
-2. Clone the repository:  
-   ```bash  
-   git clone https://github.com/Maks1mio/Rectron
-   ```  
-3. Navigate to the project folder:  
-   ```bash  
-   cd Rectron  
-   ```  
-4. Install the dependencies:  
-   ```bash  
-   yarn install  
-   ```  
+## Key Features
+- Electron Forge + Webpack
+- React + TypeScript renderer
+- Secure preload bridge (contextIsolation: true)
+- **Automatic window.d.ts generation from preload.ts**
+- Typed window.electron API without manual sync
 
-## Running  
-1. To start the project in development mode, run:  
-   ```bash  
-   yarn dev  
-   ```  
-2. To build the project, run:  
-   ```bash  
-   yarn build  
-   ```  
-3. To launch the built project, run:  
-   ```bash  
-   yarn start  
-   ```  
+## New Feature: Automatic window.d.ts Generation
+Rectron automatically generates window.d.ts based on src/main/preload.ts.
 
-## Additional Notes  
-- Make sure all required environment variables are configured, if necessary.  
-- Refer to the in-code documentation for more detailed information.
+Write APIs once in preload.ts — typings stay in sync automatically.
+
+### Example
+```ts
+contextBridge.exposeInMainWorld("electron", {
+  dialog: {
+    pickImage: async (): Promise<PickImageResult> => {}
+  }
+});
+```
+
+Auto-generated:
+```ts
+declare global {
+  interface Window {
+    electron: {
+      dialog: {
+        pickImage: () => Promise<PickImageResult>;
+      };
+    };
+  }
+}
+```
+
+## Installation
+```bash
+yarn install
+```
+
+## Development
+```bash
+yarn dev
+```
+
+## Packaging
+```bash
+yarn package
+yarn make
+```

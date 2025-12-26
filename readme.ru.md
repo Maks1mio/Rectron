@@ -1,39 +1,54 @@
-![image](https://github.com/user-attachments/assets/2e1f3e18-02bd-4c56-9252-cbbf8aea2696)
+![image](https://github.com/user-attachments/assets/54f40a5f-4f89-4b42-bfe3-bc504935fe33)
 
 # Rectron
 
 ## Описание
-Rectron — это настроенный шаблон для работы с Electron и React, который упрощает создание кроссплатформенных приложений.
+Rectron — шаблон Electron + React с упором на типобезопасность и удобную архитектуру preload.
+
+## Основные возможности
+- Electron Forge + Webpack
+- React + TypeScript
+- Context Isolation
+- **Автоматическая генерация window.d.ts из preload.ts**
+- Типизированный window.electron без ручной поддержки
+
+## Новая фишка: автогенерация window.d.ts
+preload.ts является единственным источником правды для API.
+
+### Пример
+```ts
+contextBridge.exposeInMainWorld("electron", {
+  dialog: {
+    pickImage: async (): Promise<PickImageResult> => {}
+  }
+});
+```
+
+Сгенерированный window.d.ts:
+```ts
+declare global {
+  interface Window {
+    electron: {
+      dialog: {
+        pickImage: () => Promise<PickImageResult>;
+      };
+    };
+  }
+}
+```
 
 ## Установка
-1. Убедитесь, что у вас установлен [Node.js](https://nodejs.org/).
-2. Склонируйте репозиторий:
-   ```bash
-   git clone https://github.com/Maks1mio/Rectron
-   ```
-3. Перейдите в папку проекта:
-   ```bash
-   cd Rectron
-   ```
-4. Установите зависимости:
-   ```bash
-   yarn install
-   ```
+```bash
+yarn install
+```
 
-## Запуск
-1. Для запуска проекта в режиме разработки выполните:
-   ```bash
-   yarn dev
-   ```
-2. Для сборки проекта выполните:
-   ```bash
-   yarn build
-   ```
-3. Для запуска собранного проекта выполните:
-   ```bash
-   yarn start
-   ```
+## Разработка
+```bash
+yarn dev
+```
 
-## Дополнительно
-- Убедитесь, что у вас настроены все переменные окружения, если это требуется.
-- Ознакомьтесь с документацией в коде для получения дополнительной информации.
+## Сборка
+```bash
+yarn package
+yarn make
+```

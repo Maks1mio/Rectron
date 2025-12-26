@@ -79,6 +79,7 @@ function createMainWindow() {
   });
 }
 
+app.commandLine.appendSwitch("disable-features", "AutofillServerCommunication");
 app.on("ready", () => {
   registerIpcHandlers();
   createMainWindow();

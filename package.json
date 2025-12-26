@@ -6,8 +6,8 @@
   "type": "commonjs",
   "scripts": {
     "gen:window": "node scripts/generate-window-dts.cjs",
-    "gen:window:watch": "chokidar \"src/main/preload.ts\" -c \"yarn gen:window\"",
-    "dev": "yarn gen:window && concurrently -k \"yarn gen:window:watch\" \"electron-forge start\"",
+    "gen:window:watch": "node scripts/watch-window-dts.cjs",
+    "dev": "concurrently --raw --handle-input -k --names \"TYPES,FORGE\" \"yarn gen:window:watch\" \"electron-forge start\"",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
@@ -39,6 +39,7 @@
     "babel-loader": "^10.0.0",
     "chokidar-cli": "^3.0.0",
     "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0",
     "css-loader": "^7.1.2",
     "electron": "^34.0.0",
     "sass": "^1.83.4",

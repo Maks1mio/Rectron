@@ -10,13 +10,63 @@ const OUT_PATH = path.join(projectRoot, "window.d.ts");
 const IPC_SEND_METHOD = "send";
 const IPC_INVOKE_METHOD = "invoke";
 
+const ANSI = {
+  reset: "\x1b[0m",
+  dim: "\x1b[2m",
+  bold: "\x1b[1m",
+  red: "\x1b[31m",
+  green: "\x1b[32m",
+  yellow: "\x1b[33m",
+  cyan: "\x1b[36m",
+  gray: "\x1b[90m",
+};
+
+function supportsColor() {
+  if (process.env.NO_COLOR) return false;
+  if (process.env.FORCE_COLOR === "0") return false;
+  if (process.env.FORCE_COLOR === "1") return true;
+  return !!process.stdout.isTTY;
+}
+
+const COLOR = supportsColor();
+
+function c(s, color) {
+  if (!COLOR) return s;
+  return `${color}${s}${ANSI.reset}`;
+}
+
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+function tsNow() {
+  const d = new Date();
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+
+function logLine(level, msg) {
+  const time = c(tsNow(), ANSI.gray);
+  const tag =
+    level === "OK"
+      ? c("OK  ", ANSI.green)
+      : level === "INFO"
+        ? c("INFO", ANSI.cyan)
+        : level === "WARN"
+          ? c("WARN", ANSI.yellow)
+          : c("ERR ", ANSI.red);
+
+  const prefix = `${c("RECTRON", ANSI.bold)} ${tag}`;
+  process.stdout.write(`${time} ${prefix} ${msg}\n`);
+}
+
 function die(msg) {
-  console.error(`[generate-window-dts] ${msg}`);
+  logLine("ERR", msg);
   process.exit(1);
 }
 
 function readFileSafe(p) {
-  if (!fs.existsSync(p)) die(`Файл не найден: ${p}`);
+  if (!fs.existsSync(p))
+    die(`File not found: ${path.relative(projectRoot, p)}`);
   return fs.readFileSync(p, "utf8");
 }
 
@@ -59,7 +109,10 @@ function inferReturnTypeFromCall(callExpr) {
   if (ts.isPropertyAccessExpression(callee)) {
     const method = callee.name.text;
 
-    if (ts.isIdentifier(callee.expression) && callee.expression.text === "ipcRenderer") {
+    if (
+      ts.isIdentifier(callee.expression) &&
+      callee.expression.text === "ipcRenderer"
+    ) {
       if (method === IPC_SEND_METHOD) return "void";
       if (method === IPC_INVOKE_METHOD) return "Promise<any>";
     }
@@ -83,9 +136,13 @@ function inferReturnTypeFromBody(fnNode) {
 
         if (ts.isCallExpression(expr)) return inferReturnTypeFromCall(expr);
 
-        if (ts.isAwaitExpression(expr) && ts.isCallExpression(expr.expression)) {
+        if (
+          ts.isAwaitExpression(expr) &&
+          ts.isCallExpression(expr.expression)
+        ) {
           const t = inferReturnTypeFromCall(expr.expression);
-          if (t.startsWith("Promise<")) return t.replace(/^Promise<(.+)>$/, "$1");
+          if (t.startsWith("Promise<"))
+            return t.replace(/^Promise<(.+)>$/, "$1");
           return "any";
         }
 
@@ -99,14 +156,17 @@ function inferReturnTypeFromBody(fnNode) {
 }
 
 function printParam(param, sf) {
-  const name = param.name && ts.isIdentifier(param.name) ? param.name.text : "arg";
+  const name =
+    param.name && ts.isIdentifier(param.name) ? param.name.text : "arg";
   if (param.type) return `${name}: ${getText(sf, param.type)}`;
   return `${name}: any`;
 }
 
 function printFunctionType(fnNode, sf) {
   const params = fnNode.parameters.map((p) => printParam(p, sf)).join(", ");
-  const returnType = fnNode.type ? getText(sf, fnNode.type) : inferReturnTypeFromBody(fnNode);
+  const returnType = fnNode.type
+    ? getText(sf, fnNode.type)
+    : inferReturnTypeFromBody(fnNode);
   return `(${params}) => ${returnType}`;
 }
 
@@ -133,10 +193,15 @@ function objectLiteralToType(objLit, sf, indentLevel) {
 
       let key;
       if (ts.isIdentifier(nameNode)) key = nameNode.text;
-      else if (ts.isStringLiteral(nameNode)) key = JSON.stringify(nameNode.text);
+      else if (ts.isStringLiteral(nameNode))
+        key = JSON.stringify(nameNode.text);
       else key = getText(sf, nameNode);
 
-      const typeStr = toTypeFromExpression(prop.initializer, sf, indentLevel + 1);
+      const typeStr = toTypeFromExpression(
+        prop.initializer,
+        sf,
+        indentLevel + 1
+      );
       lines.push(`${innerIndent}${key}: ${typeStr};`);
       continue;
     }
@@ -149,7 +214,9 @@ function objectLiteralToType(objLit, sf, indentLevel) {
 
     if (ts.isMethodDeclaration(prop)) {
       const nameNode = prop.name;
-      const key = ts.isIdentifier(nameNode) ? nameNode.text : getText(sf, nameNode);
+      const key = ts.isIdentifier(nameNode)
+        ? nameNode.text
+        : getText(sf, nameNode);
       const params = prop.parameters.map((p) => printParam(p, sf)).join(", ");
       const returnType = prop.type ? getText(sf, prop.type) : "any";
       lines.push(`${innerIndent}${key}: (${params}) => ${returnType};`);
@@ -182,6 +249,12 @@ function findElectronApiObjectLiteral(sourceFile) {
 }
 
 function generateDtsFromPreload(preloadPath, outPath) {
+  const t0 = Date.now();
+  logLine(
+    "INFO",
+    `Generating window.d.ts from ${c(path.relative(projectRoot, preloadPath), ANSI.gray)} ...`
+  );
+
   const code = readFileSafe(preloadPath);
 
   const sf = ts.createSourceFile(
@@ -195,7 +268,9 @@ function generateDtsFromPreload(preloadPath, outPath) {
   const apiObj = findElectronApiObjectLiteral(sf);
 
   if (!apiObj) {
-    die(`Не найден вызов contextBridge.exposeInMainWorld("electron", {...}) в ${preloadPath}`);
+    die(
+      `contextBridge.exposeInMainWorld("electron", {...}) not found in ${path.relative(projectRoot, preloadPath)}`
+    );
   }
 
   const electronType = objectLiteralToType(apiObj, sf, 3);
@@ -213,7 +288,12 @@ export {};
 `;
 
   writeFileSafe(outPath, dts);
-  console.log(`[generate-window-dts] Updated: ${path.relative(projectRoot, outPath)}`);
+
+  const ms = Date.now() - t0;
+  logLine(
+    "OK",
+    `Updated: ${c(path.relative(projectRoot, outPath), ANSI.gray)} ${c(`(${ms}ms)`, ANSI.gray)}`
+  );
 }
 
 generateDtsFromPreload(PRELOAD_PATH, OUT_PATH);
